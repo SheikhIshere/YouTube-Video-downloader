@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Preview - Video Downloader</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+  />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              light: '#6366f1',
+              DEFAULT: '#4f46e5',
+              dark: '#0891b2',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Button rain effect container */
+    button.rain-btn {
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    button.rain-btn .rain-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 2;
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    button.rain-btn.clicked {
+      color: transparent !important; /* hide text & svg fill */
+      cursor: default;
+    }
+
+    button.rain-btn.clicked .rain-bg {
+      opacity: 1;
+      background: black;
+      box-shadow: inset 0 0 15px #00ff00;
+    }
+
+    /* Style the rain characters */
+    button.rain-btn .rain-bg span {
+      position: absolute;
+      top: -20px;
+      font-weight: 700;
+      font-size: 18px;
+      opacity: 0;
+      animation: rain 1.5s linear infinite;
+      color: #0f0;
+      filter: drop-shadow(0 0 5px #0f0);
+      font-family: monospace;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    @keyframes rain {
+      0% {
+        top: -20px;
+        opacity: 0;
+        transform: translateX(0);
+      }
+      10% {
+        opacity: 0.8;
+      }
+      90% {
+        opacity: 0.8;
+      }
+      100% {
+        top: 100%;
+        opacity: 0;
+        transform: translateX(10px);
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen py-8">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <div
+      class="bg-white rounded-xl shadow-xl overflow-hidden transition-shadow duration-300 hover:shadow-2xl"
+    >
+      <!-- Header -->
+       <!-- rx580 -->
+      <header
+      
+        class="bg-gradient-to-r from-blue-700 to-blue-600 py-6 px-8"
+      >
+        <h2
+          class="text-2xl font-bold text-center text-white animate__animated animate__fadeInDown flex justify-center items-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+          Preview Content
+        </h2>
+      </header>
+
+      <!-- Content -->
+      <main class="p-6 sm:p-8">
+        {% if type == 'playlist' %}
+        <!-- Playlist View -->
+        <section
+          class="text-center mb-8 animate__animated animate__fadeIn max-w-3xl mx-auto"
+        >
+          <h3 class="text-2xl font-bold text-gray-800 mb-4">{{ title }}</h3>
+          <img
+            src="{{ thumbnail }}"
+            alt="Playlist thumbnail"
+            class="mx-auto rounded-lg shadow-md max-h-60 object-contain"
+          />
+        </section>
+
+        <section class="space-y-4 mb-8">
+          {% for video in videos %}
+          <article
+            class="flex items-center bg-white p-4 rounded-lg border border-gray-200 hover:border-primary-light transition-colors duration-200 shadow-sm hover:shadow-md"
+          >
+            <img
+              src="{{ video.thumbnail }}"
+              alt="Thumbnail"
+              class="w-32 h-24 rounded-md object-cover shadow-sm"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="ml-4 flex-1 min-w-0">
+              <h4
+                class="text-lg font-semibold text-gray-800 truncate"
+                title="{{ video.title }}"
+              >
+                {{ video.title }}
+              </h4>
+              <p class="text-sm text-gray-500">ID: {{ video.id }}</p>
+            </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </article>
+          {% endfor %}
+        </section>
+
+        {% else %}
+        <!-- Single Video View -->
+        <section
+          class="text-center mb-8 animate__animated animate__fadeIn max-w-3xl mx-auto"
+        >
+          <h3 class="text-2xl font-bold text-gray-800 mb-4">{{ title }}</h3>
+          <img
+            src="{{ thumbnail }}"
+            alt="Video thumbnail"
+            class="mx-auto rounded-lg shadow-md max-h-80 object-contain"
+            loading="lazy"
+            decoding="async"
+          />
+        </section>
+
+        <section>
+          <h4 class="text-xl font-semibold text-gray-800 mb-4">
+            Available Formats
+          </h4>
+          <div class="overflow-x-auto mb-6 rounded-lg border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Resolution
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Format
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Size
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for format in formats %}
+                <tr
+                  class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                  tabindex="0"
+                  aria-label="Select {{ format.height }}p {{ format.ext|upper }} format"
+                >
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                  >
+                    {{ format.height }}p
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                  >
+                    {{ format.ext|upper }}
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                  >
+                    {{ format.filesize|filesizeformat }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- Download Form -->
+        <form
+          method="post"
+          action="{% url 'downloader:download' %}"
+          class="space-y-6"
+          novalidate
+          id="downloadForm"
+        >
+          {% csrf_token %}
+          <input type="hidden" name="url" value="{{ url }}" />
+
+          <fieldset class="space-y-4">
+            <legend class="text-lg font-medium text-gray-800">Download Options</legend>
+
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 gap-4"
+              role="radiogroup"
+              aria-label="Media type selection"
+            >
+              <label
+                class="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-primary-light transition-colors duration-200"
+              >
+                <input
+                  type="radio"
+                  name="media_type"
+                  value="video"
+                  checked
+                  class="h-5 w-5 text-primary-light focus:ring-primary-light border-gray-300"
+                />
+                <span class="block">
+                  <span class="text-gray-900 font-medium">Video (MP4)</span>
+                  <span class="text-gray-500 text-sm block"
+                    >High quality video with audio</span
+                  >
+                </span>
+              </label>
+
+              <label
+                class="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-primary-light transition-colors duration-200"
+              >
+                <input
+                  type="radio"
+                  name="media_type"
+                  value="audio"
+                  class="h-5 w-5 text-primary-light focus:ring-primary-light border-gray-300"
+                />
+                <span class="block">
+                  <span class="text-gray-900 font-medium">Audio (MP3)</span>
+                  <span class="text-gray-500 text-sm block">Audio only format</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          {% if type == 'video' %}
+          <div class="space-y-2">
+            <label
+              for="resolution"
+              class="block text-lg font-medium text-gray-800"
+              >Select Resolution</label
+            >
+            <select
+              id="resolution"
+              name="resolution"
+              class="block w-full pl-3 pr-10 py-3 text-base border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light transition duration-200"
+            >
+              {% for format in formats %}
+              <option value="{{ format.height }}">{{ format.height }}p</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+
+          <button
+            type="submit"
+            id="downloadBtn"
+            class="rain-btn w-full flex justify-center items-center py-4 px-6 rounded-lg shadow-sm text-lg font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform duration-200 transform hover:-translate-y-0.5"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Download Now
+          </button>
+        </form>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modified script to handle AJAX download + animation -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("downloadForm");
+      const btn = document.getElementById("downloadBtn");
+      if (!btn || !form) return;
+
+      const rainContainer = document.createElement("div");
+      rainContainer.classList.add("rain-bg");
+      btn.appendChild(rainContainer);
+
+      const characters = ["0", "1", "⎈", "⏣", "⌾", "⍟", "⌘", "⍎"];
+
+      function createMatrixRain(container, count = 100) {
+        container.innerHTML = "";
+        for (let i = 0; i < count; i++) {
+          const span = document.createElement("span");
+          span.textContent = characters[Math.floor(Math.random() * characters.length)];
+          span.style.left = `${Math.random() * 100}%`;
+          span.style.animationDelay = `${Math.random() * 2}s`;
+          span.style.animationDuration = `${1.5 + Math.random() * 2}s`;
+          container.appendChild(span);
+        }
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        if (btn.classList.contains("clicked")) return; // prevent multiple clicks
+
+        btn.classList.add("clicked");
+        createMatrixRain(rainContainer);
+
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch(form.action, {
+            method: "POST",
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+          });
+
+          if (!response.ok) throw new Error("Download failed");
+
+          const blob = await response.blob();
+
+          // Extract filename from Content-Disposition header
+          const disposition = response.headers.get("Content-Disposition");
+          let filename = "downloaded_file";
+          if (disposition && disposition.indexOf("filename=") !== -1) {
+            const match = disposition.match(/filename="?(.+?)"?(\s*;|$)/);
+            if (match && match.length > 1) filename = match[1];
+          }
+
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+
+        } catch (err) {
+          alert(err.message || "An error occurred.");
+        } finally {
+          btn.classList.remove("clicked");
+          rainContainer.innerHTML = "";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
