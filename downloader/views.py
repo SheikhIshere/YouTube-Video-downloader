@@ -125,6 +125,7 @@ def download(request):
 
     try:
         ydl_opts = {
+            'cookiefile': 'cookies.txt',  # Path to your YouTube cookies file
             'quiet': True,
             'no_warnings': True,
         }
@@ -142,6 +143,7 @@ def download(request):
             filename = f"{original_title}.{ext}"
 
             ydl_opts = {
+                'cookiefile': 'cookies.txt',  # Path to your YouTube cookies file
                 'quiet': True,
                 'no_warnings': True,
             }
