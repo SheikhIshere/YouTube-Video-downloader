@@ -1,3 +1,4 @@
+from django.conf import settings
 import shutil
 from django.shortcuts import render, redirect
 from django.http import FileResponse
@@ -125,9 +126,13 @@ def download(request):
 
     try:
         ydl_opts = {
-            'cookiefile': 'cookies.txt',  # Path to your YouTube cookies file
+            'cookiefile': os.path.join(settings.BASE_DIR, 'cookies.txt'),
             'quiet': True,
             'no_warnings': True,
+            'headers': {
+                'User-Agent': 'Mozilla/5.0',
+            },
+
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -143,9 +148,12 @@ def download(request):
             filename = f"{original_title}.{ext}"
 
             ydl_opts = {
-                'cookiefile': 'cookies.txt',  # Path to your YouTube cookies file
+                'cookiefile': os.path.join(settings.BASE_DIR, 'cookies.txt'),
                 'quiet': True,
                 'no_warnings': True,
+                'headers': {
+                    'User-Agent': 'Mozilla/5.0',
+                },
             }
 
             if media_type == 'video':
