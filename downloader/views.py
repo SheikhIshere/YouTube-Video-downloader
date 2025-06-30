@@ -115,7 +115,23 @@ def preview(request):
 
 
 
+class DeleteDirFileResponse(FileResponse):
+    def __init__(self, *args, temp_dir=None, **kwargs):
+        self.temp_dir = temp_dir
+        super().__init__(*args, **kwargs)
+
+    def close(self):
+        super().close()
+        if self.temp_dir:
+            try:
+                shutil.rmtree(self.temp_dir)
+            except Exception:
+                pass
+
+
+
 def download(request):
+    # Redirect if not POST or missing download info in session
     if request.method != 'POST' or not request.session.get('download_info'):
         return redirect('downloader:index')
 
@@ -125,14 +141,24 @@ def download(request):
     resolution = request.POST.get('resolution')
 
     try:
+        # Basic yt-dlp options for human-like behavior + cookies
         ydl_opts = {
-            'cookiefile': os.path.join(settings.BASE_DIR, 'cookies.txt'),
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                          '(KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+            'http_headers': {
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Referer': 'https://www.youtube.com/',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+            },
+            'geo_bypass': True,
+            'force_ipv4': True,
+            'throttledratelimit': 500000,  # 500 KB/s to appear human-like
             'quiet': True,
             'no_warnings': True,
-            'headers': {
-                'User-Agent': 'Mozilla/5.0',
-            },
-
+            'cookiefile': os.getenv('YT_COOKIES_PATH', os.path.join(settings.BASE_DIR, 'cookies.txt')),
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -147,38 +173,31 @@ def download(request):
             ext = 'mp4' if media_type == 'video' else 'mp3'
             filename = f"{original_title}.{ext}"
 
-            ydl_opts = {
-                'cookiefile': os.path.join(settings.BASE_DIR, 'cookies.txt'),
-                'quiet': True,
-                'no_warnings': True,
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0',
-                },
-            }
+            # Update options for actual download and post-processing
+            ydl_opts.update({
+                'format': 'bestvideo+bestaudio/best' if media_type == 'video' else 'bestaudio/best',
+                'postprocessors': [
+                    {
+                        'key': 'FFmpegVideoConvertor' if media_type == 'video' else 'FFmpegExtractAudio',
+                        'preferedformat': 'mp4' if media_type == 'video' else 'mp3',
+                        'preferredquality': '192' if media_type == 'audio' else None,
+                    }
+                ],
+            })
 
-            if media_type == 'video':
-                if resolution and download_type == '1':
-                    ydl_opts['format'] = f'bestvideo[height<={resolution}][ext=mp4]+bestaudio[ext=m4a]'
-                ydl_opts['postprocessors'] = [{
-                    'key': 'FFmpegVideoConvertor',
-                    'preferedformat': 'mp4',
-                }]
-            else:
-                ydl_opts['format'] = 'bestaudio/best'
-                ydl_opts['postprocessors'] = [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': '192',
-                }]
+            if media_type == 'video' and resolution and download_type == '1':
+                ydl_opts['format'] = f'bestvideo[height<={resolution}][ext=mp4]+bestaudio[ext=m4a]'
 
-            # Create temporary directory manually
             tmpdir = tempfile.mkdtemp()
             ydl_opts['outtmpl'] = os.path.join(tmpdir, '%(title)s.%(ext)s')
+
+            # Random delay to mimic human behavior
+            time.sleep(random.uniform(1.0, 3.0))
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
 
-            # Find downloaded file
+            # Find the downloaded file
             downloaded_files = [f for f in os.listdir(tmpdir) if not f.endswith('.part')]
             if not downloaded_files:
                 shutil.rmtree(tmpdir)
@@ -186,12 +205,13 @@ def download(request):
 
             downloaded_path = os.path.join(tmpdir, downloaded_files[0])
 
+            # If audio, pick the mp3 file if exists
             if media_type == 'audio':
                 mp3_files = [f for f in os.listdir(tmpdir) if f.endswith('.mp3')]
                 if mp3_files:
                     downloaded_path = os.path.join(tmpdir, mp3_files[0])
 
-            # Open file and send response, deleting temp dir after response close
+            # Serve file with your custom response which deletes temp files after send
             f = open(downloaded_path, 'rb')
             response = DeleteDirFileResponse(
                 f,
@@ -203,4 +223,3 @@ def download(request):
 
     except Exception as e:
         return render(request, 'downloader/download.html', {'error': str(e)})
-    
