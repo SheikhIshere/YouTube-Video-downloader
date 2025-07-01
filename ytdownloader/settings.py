@@ -16,10 +16,7 @@ import os
 
 load_dotenv()
 
-
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 COOKIES_PATH = os.path.join(BASE_DIR, 'cookies.txt')
 YT_COOKIES_PATH = os.getenv('YT_COOKIES_PATH', COOKIES_PATH)
 

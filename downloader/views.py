@@ -270,7 +270,7 @@ def download(request):
             'force_ipv4': True,
             'quiet': True,
             'no_warnings': True,
-            'cookiefile': settings.YT_COOKIES_PATH,
+            'cookies': settings.YT_COOKIES_PATH,
             'cachedir': False,
             'no_cache_dir': True,
             # 'progress_hooks': [progress_hook],
