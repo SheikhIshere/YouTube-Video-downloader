@@ -12,11 +12,18 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
 import os
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+load_dotenv()
+
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+COOKIES_PATH = os.path.join(BASE_DIR, 'cookies.txt')
+YT_COOKIES_PATH = os.getenv('YT_COOKIES_PATH', COOKIES_PATH)
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 
 # Quick-start development settings - unsuitable for production
@@ -27,6 +34,11 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+
 
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['https://online-video-downloader-by-imran.onrender.com']
@@ -51,6 +63,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'downloader.middleware.TempFileCleanupMiddleware',
+
 ]
 
 ROOT_URLCONF = 'ytdownloader.urls'

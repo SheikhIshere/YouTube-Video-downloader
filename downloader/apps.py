@@ -1,36 +1,34 @@
+# [FILE NAME]: apps.py
+# This file configures the Django app and handles initial setup tasks
 from django.apps import AppConfig
 import os
-import json
 from django.conf import settings
 
 class DownloaderConfig(AppConfig):
+    # Database configuration - uses big integers for primary keys
     default_auto_field = 'django.db.models.BigAutoField'
+    
+    # Name of this app (must match the app folder name)
     name = 'downloader'
 
     def ready(self):
+        """
+        This method runs when Django starts. We use it to set up YouTube cookies.
+        Cookies can be provided via environment variable or file.
+        """
+        # 1. Get cookies from environment variable if available
         cookie_data = os.getenv("YT_COOKIES")
+        
+        # 2. Determine where to save cookies file (default location or custom from settings)
+        cookies_path = getattr(settings, 'YT_COOKIES_PATH', os.path.join(settings.BASE_DIR, 'cookies.txt'))
+        
+        # 3. If we have cookie data, save it to file
         if cookie_data:
             try:
-                # Parse the JSON string from environment
-                cookies = json.loads(cookie_data)
-                cookies_path = os.path.join(settings.BASE_DIR, 'cookies.txt')
-
-                # Write cookies in Netscape format for yt-dlp
-                with open(cookies_path, 'w', encoding='utf-8') as f:
-                    for cookie in cookies:
-                        line = "\t".join([
-                            cookie.get("domain", ""),
-                            "TRUE" if cookie.get("hostOnly") == False else "FALSE",
-                            cookie.get("path", "/"),
-                            cookie.get("secure", False) and "TRUE" or "FALSE",
-                            str(int(cookie.get("expirationDate", 0))) if cookie.get("expirationDate") else "0",
-                            cookie.get("name", ""),
-                            cookie.get("value", ""),
-                        ])
-                        f.write(line + "\n")
-
-            except json.JSONDecodeError:
-                # If YT_COOKIES is not valid JSON, just write raw string (fallback)
-                cookies_path = os.path.join(settings.BASE_DIR, 'cookies.txt')
+                # Write cookies to file using UTF-8 encoding
                 with open(cookies_path, 'w', encoding='utf-8') as f:
                     f.write(cookie_data)
+                print(f"[YT-COOKIES] Cookies written to: {cookies_path}")
+            except Exception as e:
+                # Handle any errors during file writing
+                print(f"[YT-COOKIES] Failed to write cookies: {e}")

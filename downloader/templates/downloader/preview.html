@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -9,6 +10,7 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
   />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script>
     tailwind.config = {
       theme: {
@@ -128,132 +130,140 @@
       </header>
 
       <!-- Content -->
-      <main class="p-6 sm:p-8">
-        {% if type == 'playlist' %}
-        <!-- Playlist View -->
-        <section
-          class="text-center mb-8 animate__animated animate__fadeIn max-w-3xl mx-auto"
-        >
-          <h3 class="text-2xl font-bold text-gray-800 mb-4">{{ title }}</h3>
-          <img
-            src="{{ thumbnail }}"
-            alt="Playlist thumbnail"
-            class="mx-auto rounded-lg shadow-md max-h-60 object-contain"
-          />
-        </section>
-
+      <main class="p-6 sm:p-8">        
         <section class="space-y-4 mb-8">
-          {% for video in videos %}
-          <article
-            class="flex items-center bg-white p-4 rounded-lg border border-gray-200 hover:border-primary-light transition-colors duration-200 shadow-sm hover:shadow-md"
+          {% if type == 'playlist' %}
+  <!-- Playlist Overview -->
+<section class="text-center mb-10 animate__animated animate__fadeIn max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-lg">
+  <h3 class="text-3xl font-extrabold text-gray-900 mb-6 flex justify-center items-center gap-2">
+    <i class="fa-solid fa-rectangle-list"></i>
+    {{ title }}
+  </h3>
+  <div class="inline-block border border-gray-300 rounded-lg p-2 hover:shadow-xl transition-shadow duration-300">
+    <img
+      src="{% if thumbnail %}{{ thumbnail }}{% else %}{% static 'defaultplaylist.webp' %}{% endif %}"
+      alt="Playlist thumbnail"
+      class="max-h-64 w-auto rounded-md object-contain"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+</section>
+
+<!-- Playlist Videos -->
+<section class="space-y-4 mb-10 max-w-4xl mx-auto">
+  {% for video in videos %}
+  <article
+    class="flex items-center bg-white p-4 rounded-lg border border-gray-200 hover:border-primary transition-colors duration-200 shadow-sm hover:shadow-md cursor-default"
+    tabindex="0"
+    aria-label="Playlist video: {{ video.title }}"
+  >
+    <img
+      src="{{ video.thumbnail }}"
+      alt="Thumbnail for {{ video.title }}"
+      class="w-32 h-24 rounded-md object-cover shadow-sm"
+      loading="lazy"
+      decoding="async"
+    />
+    <div class="ml-4 flex-1 min-w-0">
+      <h4 class="text-lg font-semibold text-gray-800 truncate" title="{{ video.title }}">
+        {{ video.title }}
+      </h4>
+      <p class="text-sm text-gray-500">ID: {{ video.id }}</p>
+    </div>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="h-6 w-6 text-gray-400"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+    </svg>
+  </article>
+  {% endfor %}
+</section>
+
+<!-- Available Formats with Total Size -->
+<section class="max-w-4xl mx-auto mb-16">
+  <h4 class="text-xl font-semibold text-gray-800 mb-4">Available Formats &amp; Total Sizes</h4>
+  <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resolution</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Format</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Size</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% if formats %}
+          {% for format in formats %}
+          <tr
+            class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+            tabindex="0"
+            aria-label="Select {{ format.height }}p {{ format.ext|upper }} format"
           >
-            <img
-              src="{{ video.thumbnail }}"
-              alt="Thumbnail"
-              class="w-32 h-24 rounded-md object-cover shadow-sm"
-              loading="lazy"
-              decoding="async"
-            />
-            <div class="ml-4 flex-1 min-w-0">
-              <h4
-                class="text-lg font-semibold text-gray-800 truncate"
-                title="{{ video.title }}"
-              >
-                {{ video.title }}
-              </h4>
-              <p class="text-sm text-gray-500">ID: {{ video.id }}</p>
-            </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </article>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ format.height }}p</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ format.ext|upper }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ format.filesize }} MB</td>
+          </tr>
           {% endfor %}
-        </section>
-
         {% else %}
-        <!-- Single Video View -->
-        <section
-          class="text-center mb-8 animate__animated animate__fadeIn max-w-3xl mx-auto"
-        >
-          <h3 class="text-2xl font-bold text-gray-800 mb-4">{{ title }}</h3>
-          <img
-            src="{{ thumbnail }}"
-            alt="Video thumbnail"
-            class="mx-auto rounded-lg shadow-md max-h-80 object-contain"
-            loading="lazy"
-            decoding="async"
-          />
-        </section>
-
-        <section>
-          <h4 class="text-xl font-semibold text-gray-800 mb-4">
-            Available Formats
-          </h4>
-          <div class="overflow-x-auto mb-6 rounded-lg border border-gray-200">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Resolution
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Format
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Size
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                {% for format in formats %}
-                <tr
-                  class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
-                  tabindex="0"
-                  aria-label="Select {{ format.height }}p {{ format.ext|upper }} format"
-                >
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                  >
-                    {{ format.height }}p
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                  >
-                    {{ format.ext|upper }}
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                  >
-                    {{ format.filesize|filesizeformat }}
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </section>
+          <tr>
+            <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">No formats available</td>
+          </tr>
         {% endif %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+{% else %}
+  <!-- Single Video View -->
+  <section class="text-center mb-8 animate__animated animate__fadeIn max-w-3xl mx-auto">
+    <h3 class="text-2xl font-bold text-gray-800 mb-4">{{ title }}</h3>
+    <img
+      src="{{ thumbnail }}"
+      alt="Video thumbnail"
+      class="mx-auto rounded-lg shadow-md max-h-80 object-contain"
+      loading="lazy"
+      decoding="async"
+    />
+  </section>
+
+  <section>
+    <h4 class="text-xl font-semibold text-gray-800 mb-4">Available Formats</h4>
+    <div class="overflow-x-auto mb-6 rounded-lg border border-gray-200">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resolution</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Format</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for format in formats %}
+          <tr
+            class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+            tabindex="0"
+            aria-label="Select {{ format.height }}p {{ format.ext|upper }} format"
+          >
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ format.height }}p</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ format.ext|upper }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ format.filesize|filesizeformat }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endif %}
+
+
 
         <!-- Download Form -->
         <form
@@ -309,24 +319,24 @@
             </div>
           </fieldset>
 
-          {% if type == 'video' %}
+          
           <div class="space-y-2">
-            <label
-              for="resolution"
-              class="block text-lg font-medium text-gray-800"
-              >Select Resolution</label
-            >
+            <label for="resolution" class="block text-lg font-medium text-gray-800">Select Resolution</label>
             <select
               id="resolution"
               name="resolution"
               class="block w-full pl-3 pr-10 py-3 text-base border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light transition duration-200"
             >
               {% for format in formats %}
-              <option value="{{ format.height }}">{{ format.height }}p</option>
+                <option value="{{ format.height }}">{{ format.height }}p</option>
+              {% empty %}
+                <option disabled>No available formats</option>
               {% endfor %}
             </select>
           </div>
-          {% endif %}
+
+
+          
 
           <button
             type="submit"
@@ -357,76 +367,77 @@
   <!-- Modified script to handle AJAX download + animation -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("downloadForm");
-      const btn = document.getElementById("downloadBtn");
-      if (!btn || !form) return;
+  const form = document.getElementById("downloadForm");
+  const btn = document.getElementById("downloadBtn");
+  if (!btn || !form) return;
 
-      const rainContainer = document.createElement("div");
-      rainContainer.classList.add("rain-bg");
-      btn.appendChild(rainContainer);
+  const rainContainer = document.createElement("div");
+  rainContainer.classList.add("rain-bg");
+  btn.appendChild(rainContainer);
 
-      const characters = ["0", "1", "⎈", "⏣", "⌾", "⍟", "⌘", "⍎"];
+  const characters = ["0", "1", "⎈", "⏣", "⌾", "⍟", "⌘", "⍎"];
 
-      function createMatrixRain(container, count = 100) {
-        container.innerHTML = "";
-        for (let i = 0; i < count; i++) {
-          const span = document.createElement("span");
-          span.textContent = characters[Math.floor(Math.random() * characters.length)];
-          span.style.left = `${Math.random() * 100}%`;
-          span.style.animationDelay = `${Math.random() * 2}s`;
-          span.style.animationDuration = `${1.5 + Math.random() * 2}s`;
-          container.appendChild(span);
-        }
+  function createMatrixRain(container, count = 100) {
+    container.innerHTML = "";
+    for (let i = 0; i < count; i++) {
+      const span = document.createElement("span");
+      span.textContent = characters[Math.floor(Math.random() * characters.length)];
+      span.style.left = `${Math.random() * 100}%`;
+      span.style.animationDelay = `${Math.random() * 2}s`;
+      span.style.animationDuration = `${1.5 + Math.random() * 2}s`;
+      container.appendChild(span);
+    }
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (btn.classList.contains("clicked")) return; // prevent multiple clicks
+
+    btn.classList.add("clicked");
+    createMatrixRain(rainContainer);
+
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+
+      if (!response.ok) throw new Error("Download failed");
+
+      const blob = await response.blob();
+
+      // Extract filename from Content-Disposition header
+      const disposition = response.headers.get("Content-Disposition");
+      let filename = "downloaded_file";
+      if (disposition && disposition.indexOf("filename=") !== -1) {
+        const match = disposition.match(/filename="?(.+?)"?(\s*;|$)/);
+        if (match && match.length > 1) filename = match[1];
       }
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
 
-        if (btn.classList.contains("clicked")) return; // prevent multiple clicks
+    } catch (err) {
+      alert(err.message || "An error occurred.");
+    } finally {
+      btn.classList.remove("clicked");
+      rainContainer.innerHTML = "";
+    }
+  });
+});
 
-        btn.classList.add("clicked");
-        createMatrixRain(rainContainer);
-
-        const formData = new FormData(form);
-
-        try {
-          const response = await fetch(form.action, {
-            method: "POST",
-            body: formData,
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest',
-            },
-          });
-
-          if (!response.ok) throw new Error("Download failed");
-
-          const blob = await response.blob();
-
-          // Extract filename from Content-Disposition header
-          const disposition = response.headers.get("Content-Disposition");
-          let filename = "downloaded_file";
-          if (disposition && disposition.indexOf("filename=") !== -1) {
-            const match = disposition.match(/filename="?(.+?)"?(\s*;|$)/);
-            if (match && match.length > 1) filename = match[1];
-          }
-
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(url);
-
-        } catch (err) {
-          alert(err.message || "An error occurred.");
-        } finally {
-          btn.classList.remove("clicked");
-          rainContainer.innerHTML = "";
-        }
-      });
-    });
   </script>
 </body>
 </html>
