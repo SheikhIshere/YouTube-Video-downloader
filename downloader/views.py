@@ -17,6 +17,54 @@ from django.utils.text import slugify
 from pathlib import Path
 from datetime import datetime
 
+
+# testing 
+import base64
+from django.utils.text import slugify
+
+def get_cookies_temp_file():
+    """Handle cookies from environment variable with multiple fallback methods"""
+    try:
+        if hasattr(settings, 'YT_COOKIES_PATH') and os.path.exists(settings.YT_COOKIES_PATH):
+            return settings.YT_COOKIES_PATH
+
+        cookies_base64 = os.getenv("YT_COOKIES_BASE64")
+        if cookies_base64:
+            cookies_content = base64.b64decode(cookies_base64).decode('utf-8')
+            with tempfile.NamedTemporaryFile(mode='w+', suffix='.txt', delete=False) as f:
+                f.write(cookies_content)
+                return f.name
+
+        cookies_content = os.getenv("YT_COOKIES_CONTENT")
+        if cookies_content:
+            with tempfile.NamedTemporaryFile(mode='w+', suffix='.txt', delete=False) as f:
+                f.write(cookies_content)
+                return f.name
+
+        return None
+    except Exception as e:
+        logger.error(f"Cookie handling error: {e}")
+        return None
+
+def rate_limited(max_per_minute=10):
+    min_interval = 60.0 / float(max_per_minute)
+    def decorator(f):
+        last_time_called = [0.0]
+        def wrapped(*args, **kwargs):
+            elapsed = time.time() - last_time_called[0]
+            wait_time = min_interval - elapsed
+            if wait_time > 0:
+                time.sleep(wait_time)
+            last_time_called[0] = time.time()
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
+
+
+
+
+
+
 # Set up logging
 logger = logging.getLogger(__name__)
 
@@ -218,7 +266,7 @@ def preview(request):
     
 
 
-
+@rate_limited(max_per_minute=6) # testing to solve yt cookies problem
 def download(request):
     """
     Handles the actual download process.
@@ -270,7 +318,8 @@ def download(request):
             'force_ipv4': True,
             'quiet': True,
             'no_warnings': True,
-            'cookies': settings.YT_COOKIES_PATH,
+            # 'cookies': settings.YT_COOKIES_PATH,
+            'cookiefile': get_cookies_temp_file(),
             'cachedir': False,
             'no_cache_dir': True,
             # 'progress_hooks': [progress_hook],
@@ -376,5 +425,15 @@ def download(request):
         if os.path.exists(temp_dir):
             print_with_timestamp(f"Cleaning up temp dir at {temp_dir} due to error")
             shutil.rmtree(temp_dir)
+
+        #testing:
+        # Inside finally (after `except`)
+        cookies_file = ydl_opts.get('cookiefile')
+        if cookies_file and os.path.exists(cookies_file) and cookies_file != settings.YT_COOKIES_PATH:
+            try:
+                os.unlink(cookies_file)
+            except:
+                pass
+            
 
         return render(request, 'downloader/download.html', {'error': str(e)})
