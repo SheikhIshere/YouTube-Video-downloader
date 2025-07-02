@@ -2,17 +2,12 @@
 
 A **powerful**, **easy-to-use** web application built with **Django** and `yt-dlp`—allowing users to paste any YouTube link, choose the format, and download videos or audio instantly. No login required.
 
----
-
-## 🔍 SEO-Friendly Description
-
-A Django web interface for `yt-dlp`, the advanced YouTube‑dl fork that supports downloading from thousands of sites and offers smart format selection, post‑processing, and high‑quality audio/video merging 1.
 
 ---
 
 ## 🚀 Features
 
-- Paste any valid YouTube URL  
+- Paste any valid URL(Yt,GB, Insta, X)
 - Select download format: video or audio  
 - Smart format optimizer (best quality, mp4, m4a, etc.)  
 - Automatically merges audio/video using `ffmpeg` if installed  
