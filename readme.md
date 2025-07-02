@@ -34,13 +34,7 @@ A **powerful**, **easy-to-use** web application built with **Django** and `yt-dl
 
 ---
 
-## ⚙️ Setup & Installation
+## ⚙️ Live Links 🔗
 
 ```bash
-git clone https://github.com/SheikhIshere/YouTube-Video-downloader.git
-cd YouTube-Video-downloader
-
-python3 -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
-
-pip install -r requirements.txt
+https://online-video-downloader-by-imran.onrender.com/
